@@ -1,0 +1,58 @@
+name: e2e
+
+on:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * *'   
+  workflow_dispatch:      
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+      SF_BASE_URL: ${{ vars.SF_BASE_URL }}
+      NO_COLOR: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli
+
+      - name: Log in to Salesforce
+        run: |
+          echo "${{ secrets.SFDX_AUTH_URL }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias flosum-prep
+          rm auth.txt
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke tests (pull requests)
+        if: github.event_name == 'pull_request'
+        run: npm run test:smoke
+
+      - name: Full suite (nightly and manual)
+        if: github.event_name != 'pull_request'
+        run: npm test
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
