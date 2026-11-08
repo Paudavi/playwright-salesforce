@@ -9,3 +9,7 @@ node_modules/
 
 .env
 .auth/
+.DS_Store
+.vscode/
+.sf/
+.sfdx/
