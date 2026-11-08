@@ -66,6 +66,15 @@ export class SalesforceApi {
         return body.records;
     }
 
+    //Read: returns how an object is configured right now (fields, types, picklist)
+    async describe(objectName: string) {
+        const res = await this.api.get(`/services/data/v${this.version}/sobjects/${objectName}/describe`);
+        if(!res.ok()) {
+            throw new Error(`Describe failed (${res.status()}): ${await res.text()}`);
+        }
+        return res.json();
+    }
+
     // Write: creates a record, remembers it for cleanup, returns its Id
     async create(objectName: string, fields: Record<string, unknown>) {
         const res = await this.api.post(
