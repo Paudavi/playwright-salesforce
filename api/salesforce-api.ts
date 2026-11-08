@@ -66,7 +66,7 @@ export class SalesforceApi {
         return body.records;
     }
 
-    // 3. Write: creates a record, remembers it for cleanup, returns its Id
+    // 3.1 Write: creates a record, remembers it for cleanup, returns its Id
     async create(objectName: string, fields: Record<string, unknown>) {
         const res = await this.api.post(
             `/services/data/v${this.version}/sobjects/${objectName}`,
@@ -85,6 +85,30 @@ export class SalesforceApi {
         this.created.push({ objectName, id })
     }
 
+    // 3.2 Write: updates a fields of an existing record
+    async update(objectName: string, id: string, fields: Record<string, unknown>) {
+        const res = await this.api.patch(
+            `/services/data/v${this.version}/sobjects/${objectName}/${id}`,
+            { data: fields }
+        );
+        if (!res.ok()) {
+            throw new Error(`Update failed (${res.status()}): ${await res.text()}`);
+        }
+    }
+
+    //Raw request: return the response as is, for negative tests
+    async createRaw(objectName: string, fields: Record<string, unknown>) {
+        return this.api.post(`/services/data/v${this.version}/sobjects/${objectName}`,
+            { data: fields }
+        )
+    }
+
+    async getRaw(objectName: string , id:String) {
+        return this.api.get(`/services/data/v${this.version}/sobjects/${objectName}/${id}`);
+    }
+
+
+
     // 3. Write: deletes a record by Id
     async delete(objectName: string, id: string) {
         const res = await this.api.delete(
@@ -93,6 +117,7 @@ export class SalesforceApi {
         if (!res.ok()) {
             throw new Error(`Delete failed (${res.status()}): ${await res.text()}`);
         }
+        this.created = this.created.filter((r) => r.id !== id);
     }
 
     // 4. Clean up: deletes everything this client created, newest first
