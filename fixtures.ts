@@ -14,8 +14,11 @@ export const test = base.extend<Fixtures>({
     sfApi: async ({ }, use) => {
         const sf = await SalesforceApi.connect();
         await use(sf);          // the test runs here
-        await sf.cleanup();     // runs after the test, even if it failed
-        await sf.dispose();
+        try {
+            await sf.cleanup();    // delete what the test created
+        } finally {
+            await sf.dispose(); // always release the client, even if cleanup fails
+        }
     },
 
     // Page objects, ready to use
