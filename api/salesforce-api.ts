@@ -1,10 +1,12 @@
 import { request, APIRequestContext } from '@playwright/test';
 import { execSync } from 'node:child_process';
 
+export const ORG = process.env.SF_ORG_ALIAS || 'flosum-prep';
+
 // ---------- sf CLI helpers ----------
 
 // Runs an sf CLI command and returns its parsed "result"
-function runSf(command: string) {
+export function runSf(command: string) {
     const raw = execSync(command, {
         env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     }).toString();
@@ -16,10 +18,10 @@ function runSf(command: string) {
 
 // Gets the instance URL, API version and access token for the org
 function getOrgInfo() {
-    const org = runSf('sf org display --json -o flosum-prep');
+    const org = runSf(`sf org display --json -o ${ORG}`);
 
     // The access token is redacted in org display, so it has its own command
-    const auth = runSf('sf org auth show-access-token --json -o flosum-prep');
+    const auth = runSf(`sf org auth show-access-token --json -o ${ORG}`);
     const accessToken = auth.accessToken;
 
     // A real Salesforce access token starts with the Org ID prefix: 00D...
@@ -80,7 +82,7 @@ export class SalesforceApi {
 
     // Registers a record created outside this client (e.g. through the UI) for cleanup
     track(objectName: string, id: string) {
-        this.created.push({objectName, id})
+        this.created.push({ objectName, id })
     }
 
     // 3. Write: deletes a record by Id
