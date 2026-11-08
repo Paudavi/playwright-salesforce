@@ -78,6 +78,11 @@ export class SalesforceApi {
         return id;
     }
 
+    // Registers a record created outside this client (e.g. through the UI) for cleanup
+    track(objectName: string, id: string) {
+        this.created.push({objectName, id})
+    }
+
     // 3. Write: deletes a record by Id
     async delete(objectName: string, id: string) {
         const res = await this.api.delete(
