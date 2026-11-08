@@ -26,7 +26,7 @@ function readFieldXml(objectName: string, fieldName: string) {
     return parser.parse(readFileSync(file, 'utf-8')).CustomField;
 }
 
-const numberFields = ['Records_Backed_Up__c'];
+const numberFields = ['Records_Backed_Up__c', 'Duration_Minutes__c'];
 
 for (const fieldName of numberFields) {
     test(`${fieldName} in the org matches its source XML`, { tag: '@smoke' }, async ({ sfApi }) => {
