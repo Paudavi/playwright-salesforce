@@ -44,7 +44,7 @@ export class SalesforceApi {
 
     constructor(private api: APIRequestContext, private version: string) { }
 
-    // 1. Connect: builds an HTTP client with the base URL and auth header
+    // Connect: builds an HTTP client with the base URL and auth header
     static async connect() {
         const org = getOrgInfo();
         const api = await request.newContext({
@@ -54,7 +54,7 @@ export class SalesforceApi {
         return new SalesforceApi(api, org.apiVersion);
     }
 
-    // 2. Read: runs a SOQL query and returns the matching records
+    // Read: runs a SOQL query and returns the matching records
     async query(soql: string) {
         const res = await this.api.get(`/services/data/v${this.version}/query`, {
             params: { q: soql },
@@ -66,7 +66,7 @@ export class SalesforceApi {
         return body.records;
     }
 
-    // 3.1 Write: creates a record, remembers it for cleanup, returns its Id
+    // Write: creates a record, remembers it for cleanup, returns its Id
     async create(objectName: string, fields: Record<string, unknown>) {
         const res = await this.api.post(
             `/services/data/v${this.version}/sobjects/${objectName}`,
@@ -82,10 +82,10 @@ export class SalesforceApi {
 
     // Registers a record created outside this client (e.g. through the UI) for cleanup
     track(objectName: string, id: string) {
-        this.created.push({ objectName, id })
+        this.created.push({ objectName, id });
     }
 
-    // 3.2 Write: updates a fields of an existing record
+    // Write: updates fields of an existing record
     async update(objectName: string, id: string, fields: Record<string, unknown>) {
         const res = await this.api.patch(
             `/services/data/v${this.version}/sobjects/${objectName}/${id}`,
@@ -96,20 +96,20 @@ export class SalesforceApi {
         }
     }
 
-    //Raw request: return the response as is, for negative tests
+    // Raw request: return the response as is, for negative tests
     async createRaw(objectName: string, fields: Record<string, unknown>) {
         return this.api.post(`/services/data/v${this.version}/sobjects/${objectName}`,
             { data: fields }
         )
     }
 
-    async getRaw(objectName: string , id:String) {
+    async getRaw(objectName: string , id:string) {
         return this.api.get(`/services/data/v${this.version}/sobjects/${objectName}/${id}`);
     }
 
 
 
-    // 3. Write: deletes a record by Id
+    // Write: deletes a record by Id
     async delete(objectName: string, id: string) {
         const res = await this.api.delete(
             `/services/data/v${this.version}/sobjects/${objectName}/${id}`
@@ -120,7 +120,7 @@ export class SalesforceApi {
         this.created = this.created.filter((r) => r.id !== id);
     }
 
-    // 4. Clean up: deletes everything this client created, newest first
+    // Clean up: deletes everything this client created, newest first
     async cleanup() {
         for (const record of this.created.reverse()) {
             await this.delete(record.objectName, record.id);
@@ -128,7 +128,7 @@ export class SalesforceApi {
         this.created = [];
     }
 
-    // 5. Close: releases the HTTP client
+    // Close: releases the HTTP client
     async dispose() {
         await this.api.dispose();
     }
